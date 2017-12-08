@@ -118,7 +118,7 @@ $(ESP_IDF_PATH)/components/esp32/libhal.a  \
 -lstdc++ \
 -lgcc
 
-ifdef BLE
+ifdef BLEOld
 SOURCES+= targets/esp32/BLE/gatts_func.c
 WRAPPERSOURCES+= targets/esp32/BLE/jswrap_esp32_BLE.c
 INCLUDE+= -I$(ESP_IDF_PATH)/components/bt/bluedroid/include \
@@ -130,4 +130,19 @@ INCLUDE+= -I$(ESP_IDF_PATH)/components/bt/bluedroid/include \
 LDFLAGS+= -L$(ESP_APP_TEMPLATE_PATH)/build/components/bt/bluedroid/api \
 -L$(ESP_APP_TEMPLATE_PATH)/build/components/bt/bluedroid/bta 
 DEFINES += -DBLE
+endif
+
+ifdef USE_BLUETOOTH
+SOURCES+= targets/esp32/bluetooth.c \
+targets/esp32/BLE/esp32_bluetooth_utils.c \
+targets/esp32/BLE/esp32_gap_func.c \
+targets/esp32/BLE/esp32_gatts_func.c
+INCLUDE+= -I$(ESP_IDF_PATH)/components/bt/bluedroid/include \
+-I$(ESP_IDF_PATH)/components/bt/bluedroid/api/include \
+-I$(ESP_IDF_PATH)/components/bt/bluedroid/bta/include \
+-I$(ESP_IDF_PATH)/components/bt/bluedroid/stack/include \
+-I$(ESP_IDF_PATH)/components/bt/bluedroid/stack/gatt/include \
+-I$(ESP_IDF_PATH)/components/bt/bluedroid/osi/include
+LDFLAGS+= -L$(ESP_APP_TEMPLATE_PATH)/build/components/bt/bluedroid/api \
+-L$(ESP_APP_TEMPLATE_PATH)/build/components/bt/bluedroid/bta 
 endif
