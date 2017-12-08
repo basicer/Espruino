@@ -1,7 +1,7 @@
 /*
  * This file is part of Espruino, a JavaScript interpreter for Microcontrollers
  *
- * Copyright (C) 2013 Gordon Williams <gw@pur3.co.uk>
+ * Copyright (C) 2017 Gordon Williams <gw@pur3.co.uk>
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -15,6 +15,9 @@
  
 #include "jswrap_esp32.h"
 #include "jshardwareAnalog.h"
+#include "jsutils.h"
+#include "jsinteractive.h"
+#include "jsparse.h"
 
 #include "esp_system.h"
 #include "app_update/include/esp_ota_ops.h"

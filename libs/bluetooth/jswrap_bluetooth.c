@@ -44,6 +44,10 @@
 #endif
 #endif
 
+#ifdef ESP32
+#include "BLE/esp32_gap_func.h"
+#include "BLE/esp32_gatts_func.h"
+#endif
 
 // ------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------
@@ -644,9 +648,12 @@ void jswrap_nrf_bluetooth_setAdvertising(JsVar *data, JsVar *options) {
         err_code = sd_ble_gap_device_name_set(&sec_mode,
                                               (const uint8_t *)namePtr,
                                               nameLen);
-#else
-        err_code = 0xDEAD;
-        jsiConsolePrintf("FIXME\n");
+//#else
+//        err_code = 0xDEAD;
+//        jsiConsolePrintf("FIXME\n");
+#endif
+#ifdef ESP32
+		bluetooth_setDeviceName((uint8_t *)namePtr);
 #endif
         jsble_check_error(err_code);
         bleChanged = true;
@@ -728,9 +735,12 @@ void jswrap_nrf_bluetooth_setAdvertising(JsVar *data, JsVar *options) {
     jsble_advertising_stop();
 #ifdef NRF5X
   err_code = sd_ble_gap_adv_data_set((uint8_t *)dPtr, dLen, NULL, 0);
-#else
-  err_code = 0xDEAD;
-  jsiConsolePrintf("FIXME\n");
+//#else
+//  err_code = 0xDEAD;
+//  jsiConsolePrintf("FIXME\n");
+#endif
+#ifdef ESP32
+  err_code = bluetooth_gap_setAdvertizing();
 #endif
   jsvUnLock(initialArray);
   jsble_check_error(err_code);
