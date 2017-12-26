@@ -670,9 +670,8 @@ bool netCheckError(JsNetwork *net) {
 int netCreateSocket(JsNetwork *net, SocketType socketType, uint32_t host, unsigned short port, JsVar *options) {
   int sckt = net->createsocket(net, socketType, host, port, options);
   if (sckt<0) return sckt;
-
 #ifdef USE_TLS
-  assert(sckt>=0 && sckt<32);
+//  assert(sckt>=0 && sckt<32);
   if (socketType & ST_TLS) {
     if (ssl_newSocketData(sckt, options)) {
     } else {

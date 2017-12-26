@@ -18,6 +18,7 @@
 
 #include "esp_bt_defs.h"
 #include "esp_gatts_api.h"
+#include "esp_gattc_api.h"
 #include "esp_gap_ble_api.h"
 
 #define BLE_WRITE_EVENT				JS_EVENT_PREFIX"blewv"
@@ -29,7 +30,9 @@
 
 JsVar *bda2JsVarString(uint8_t *ble_adv);
 
+void ESP32_setBLE_Debug(int level);
 void jsWarnGattsEvent(esp_gatts_cb_event_t event,esp_gatt_if_t gatts_if);
+void jsWarnGattcEvent(esp_gattc_cb_event_t event,esp_gatt_if_t gatts_if);
 void jsWarnGapEvent(esp_gap_ble_cb_event_t event);
 void jsWarnUUID(esp_bt_uuid_t char_uuid);
 

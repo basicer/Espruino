@@ -17,6 +17,7 @@
 #include "jshardwarePulse.h"
 #include "jshardwareSpi.h"
 #include "jswrap_wifi.h" // jswrap_wifi_restore
+#include "bluetooth.h"
 
 #include "esp_spi_flash.h"
 #include "spi_flash/include/esp_partition.h"
@@ -58,6 +59,7 @@ int app_main(void)
 {
   esp_log_level_set("*", ESP_LOG_ERROR); // set all components to ERROR level - suppress Wifi Info 
   nvs_flash_init();
+  jsble_init();
   spi_flash_init();
   tcpip_adapter_init();
   timers_Init();

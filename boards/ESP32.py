@@ -19,7 +19,7 @@ info = {
  'espruino_page_link'       : 'ESP32',
  'default_console'          : "EV_SERIAL1",
  'default_console_baudrate' : "115200",
- 'variables'                : 5000,
+ 'variables'                : 2000,
  'binary_name'              : 'espruino_%v_esp32.bin',
  'build' : {
    'optimizeflags' : '-Og',
@@ -53,10 +53,10 @@ chip = {
   'adc'     : 2,
   'dac'     : 0,
   'saved_code' : {
-    'address' : 0x100000,
+    'address' : 0x2f0000,
     'page_size' : 4096,
     'pages' : 16,
-    'flash_available' : 960, # firmware can be up to this size
+    'flash_available' : 1280, # firmware can be up to this size
   },
 };
 devices = {

@@ -107,7 +107,7 @@ void gap_event_scan_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t
 }
 
 void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param){
-//	jsWarnGapEvent(event);
+	jsWarnGapEvent(event);
     switch (event) {
     case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:{
         adv_config_done &= (~adv_config_flag);

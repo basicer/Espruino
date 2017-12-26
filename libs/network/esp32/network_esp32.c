@@ -83,7 +83,6 @@ int net_esp32_createsocket(JsNetwork *net, SocketType socketType, uint32_t host,
       jsError("Socket creation failed");
       return sckt; // error
     }
-
     // turn on non-blocking mode
     #ifdef WIN_OS
     u_long n = 1;
