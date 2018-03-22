@@ -22,6 +22,10 @@
 #include "app_error.h"
 #endif
 
+#ifdef ESP32
+#include "BLE/esp32_gatts_func.h"
+#endif
+
 /// Return true if two UUIDs are equal
 bool bleUUIDEqual(ble_uuid_t a, ble_uuid_t b) {
 #ifdef NRF5X
@@ -238,7 +242,10 @@ uint16_t bleGetGATTHandle(ble_uuid_t char_uuid) {
     char_handle++;
   }
 #else
-  jsiConsolePrintf("FIXME\n");
+  for (uint32_t pos = 0; pos < ble_char_cnt; ++pos) {
+    if (gatts_char[pos].char_uuid.uuid.uuid16 == char_uuid.uuid) return gatts_char[pos].char_handle;
+  }
+  jsiConsolePrintf("FIXME >> bleGetGATTHandle failed");
 #endif
   return BLE_GATT_HANDLE_INVALID;
 }

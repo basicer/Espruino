@@ -43,12 +43,12 @@ static esp_ble_adv_params_t adv_params = {
     .adv_filter_policy = ADV_FILTER_ALLOW_SCAN_ANY_CON_ANY,
 };
 
-static esp_ble_scan_params_t ble_scan_params = 	{	
-	.scan_type              = BLE_SCAN_TYPE_ACTIVE,
-	.own_addr_type          = BLE_ADDR_TYPE_PUBLIC,
-	.scan_filter_policy     = BLE_SCAN_FILTER_ALLOW_ALL,
-	.scan_interval          = 0x50,
-	.scan_window            = 0x30		
+static esp_ble_scan_params_t ble_scan_params =  {   
+    .scan_type              = BLE_SCAN_TYPE_ACTIVE,
+    .own_addr_type          = BLE_ADDR_TYPE_PUBLIC,
+    .scan_filter_policy     = BLE_SCAN_FILTER_ALLOW_ALL,
+    .scan_interval          = 0x50,
+    .scan_window            = 0x30      
 };
 
 static esp_ble_adv_data_t adv_data = {
@@ -68,18 +68,18 @@ static esp_ble_adv_data_t adv_data = {
 };
 
 static void execScanFunc(esp_ble_gap_cb_param_t *p){
-	JsVar *evt = jsvNewObject();
-	jsvObjectSetChildAndUnLock(evt, "id", bda2JsVarString(p->scan_rst.bda));
-	jsvObjectSetChildAndUnLock(evt, "rssi",jsvNewFromInteger(p->scan_rst.rssi));
+    JsVar *evt = jsvNewObject();
+    jsvObjectSetChildAndUnLock(evt, "id", bda2JsVarString(p->scan_rst.bda));
+    jsvObjectSetChildAndUnLock(evt, "rssi",jsvNewFromInteger(p->scan_rst.rssi));
     JsVar *data = jsvNewStringOfLength(p->scan_rst.adv_data_len, (char*)p->scan_rst.ble_adv);
-	if(data){
-		JsVar *ab = jsvNewArrayBufferFromString(data,p->scan_rst.adv_data_len);
-		jsvUnLock(data);
-		jsvObjectSetChildAndUnLock(evt,"data",ab);
-	}
+    if(data){
+        JsVar *ab = jsvNewArrayBufferFromString(data,p->scan_rst.adv_data_len);
+        jsvUnLock(data);
+        jsvObjectSetChildAndUnLock(evt,"data",ab);
+    }
     jsiQueueObjectCallbacks(execInfo.root, BLE_SCAN_EVENT, &evt,1);
-	jsvUnLock(evt);
-	jshHadEvent();
+    jsvUnLock(evt);
+    jshHadEvent();
 }
 
 void gap_event_scan_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param){
@@ -108,7 +108,7 @@ void gap_event_scan_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t
 }
 
 void gap_event_handler(esp_gap_ble_cb_event_t event, esp_ble_gap_cb_param_t *param){
-	jsWarnGapEvent(event);
+    jsWarnGapEvent(event);
     switch (event) {
 		case ESP_GAP_BLE_ADV_DATA_SET_COMPLETE_EVT:{
 			adv_config_done &= (~adv_config_flag);
@@ -171,12 +171,12 @@ jsWarn("--- gap_setScan %x\n",enable);
 }
 
 esp_err_t bluetooth_gap_startAdvertizing(bool enable){
-	if(enable){
-		return esp_ble_gap_start_advertising(&adv_params);
-	}
-	else{
-		return esp_ble_gap_stop_advertising();
-	}
+    if(enable){
+        return esp_ble_gap_start_advertising(&adv_params);
+    }
+    else{
+        return esp_ble_gap_stop_advertising();
+    }
 }
 
 int addAdvertisingData(uint8_t *advData,int pnt,int idx,JsVar *value){

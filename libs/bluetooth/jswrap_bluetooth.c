@@ -48,6 +48,7 @@
 #include "BLE/esp32_gap_func.h"
 #include "BLE/esp32_gatts_func.h"
 #include "BLE/esp32_gattc_func.h"
+#include "BLE/esp32_bluetooth_utils.h"
 #define BLE_CONN_HANDLE_INVALID -1
 #endif
 
@@ -732,6 +733,7 @@ void jswrap_nrf_bluetooth_setAdvertising(JsVar *data, JsVar *options) {
   jsvObjectSetOrRemoveChild(execInfo.hiddenRoot, BLE_NAME_ADVERTISE_DATA, advArray);
   jsvObjectSetOrRemoveChild(execInfo.hiddenRoot, BLE_NAME_ADVERTISE_OPTIONS, options);
   jsvUnLock(advArray);
+
   // now actually update advertising
   if (bleChanged && isAdvertising)
     jsble_advertising_stop();
@@ -1239,6 +1241,20 @@ void jswrap_nrf_bluetooth_updateServices(JsVar *data) {
                     ok = false;
                 }
               }
+#endif
+#ifdef ESP32
+
+              for(uint16_t pos = 0; pos < ble_char_cnt; pos++) {
+                if ( gatts_char[pos].char_handle != char_handle ) continue;
+                char hiddenName[12];
+                bleGetHiddenName(hiddenName,BLE_CHAR_VALUE,pos);
+                jsvObjectSetChild(execInfo.hiddenRoot,hiddenName, charValue);
+                struct gatts_service_inst svc = gatts_service[gatts_char[pos].service_pos];
+                esp_ble_gatts_send_indicate(svc.gatts_if, svc.conn_id, gatts_char[pos].char_handle, vLen, vPtr, indication_requested);
+                break;
+              }
+              //esp_ble_gatts_send_indicate(esp_gatt_if_t gatts_if, uint16_t conn_id, uint16_t attr_handle, uint16_t value_len, uint8_t *value, bool need_confirm)
+              //
 #endif
             }
           }

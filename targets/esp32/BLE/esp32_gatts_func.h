@@ -51,8 +51,10 @@ struct gatts_descr_inst {
 };
 
 static uint8_t *adv_service_uuid128 = NULL;
+extern uint16_t ble_service_cnt;
+extern uint16_t ble_char_cnt;
 
-static uint16_t ble_service_cnt = 0;
+
 
 void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
 void gatts_register_app(uint16_t id);
@@ -60,5 +62,11 @@ void gatts_set_services(JsVar *data);
 void gatts_reset(bool removeValues);
 
 void gatts_test();
+
+
+extern struct gatts_service_inst *gatts_service;
+extern struct gatts_char_inst *gatts_char;
+extern struct gatts_descr_inst *gatts_descr;
+;
 
 #endif /* GATTS_FUNC_H_ */

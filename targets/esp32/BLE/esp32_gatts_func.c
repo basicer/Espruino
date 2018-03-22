@@ -28,9 +28,13 @@
 #include "jsparse.h"
 #include "jsinteractive.h"
 
+
+uint16_t ble_service_cnt = 0;
+uint16_t ble_char_cnt = 0;
+
 JsVar *gatts_services;
 uint16_t ble_service_pos = -1;JsvObjectIterator ble_service_it;//ble_service_cnt is defined in .h
-uint16_t ble_char_pos = -1;JsvObjectIterator ble_char_it;uint16_t ble_char_cnt = 0;
+uint16_t ble_char_pos = -1;JsvObjectIterator ble_char_it;//uint16_t ble_char_cnt = 0;
 uint16_t ble_descr_pos = -1;JsvObjectIterator ble_descr_it;uint16_t ble_descr_cnt = 0;
 
 struct gatts_service_inst *gatts_service = NULL;
@@ -42,13 +46,13 @@ bool _removeValues;
 void emitNRFEvent(char *event,JsVar *args,int argCnt){
   JsVar *nrf = jsvObjectGetChild(execInfo.root, "NRF", 0);
   if(nrf){
-	JsVar *eventName = jsvNewFromString(event);
+    JsVar *eventName = jsvNewFromString(event);
     JsVar *callback = jsvSkipNameAndUnLock(jsvFindChildFromVar(nrf,eventName,0));
-	jsvUnLock(eventName);
-	if(callback) jsiQueueEvents(nrf,callback,args,argCnt);
-	jsvUnLock(nrf);
-	jsvUnLock(callback);
-	if(args) jsvUnLockMany(argCnt,args);
+    jsvUnLock(eventName);
+    if(callback) jsiQueueEvents(nrf,callback,args,argCnt);
+    jsvUnLock(nrf);
+    jsvUnLock(callback);
+    if(args) jsvUnLockMany(argCnt,args);
   }
   else {jsWarn("sorry, no NRF Object found"); }
 } 
@@ -101,28 +105,40 @@ static void gatts_read_value_handler(esp_gatts_cb_event_t event, esp_gatt_if_t g
 	esp_ble_gatts_send_response(gatts_if, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, &rsp);
 }
 static void gatts_write_value_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {
-	for(uint16_t pos = 0; pos < ble_char_cnt; pos++){
-		if(gatts_char[pos].char_handle == param->write.handle){
-			char hiddenName[12];
-			bleGetHiddenName(hiddenName,BLE_CHAR_VALUE,pos);
-			jsvObjectSetChildAndUnLock(execInfo.hiddenRoot,hiddenName,
-			   jsvNewStringOfLength(param->write.len,param->write.value));
-			bleGetHiddenName(hiddenName,BLE_WRITE_EVENT,pos);
-			JsVar *writeCB = jsvObjectGetChild(execInfo.hiddenRoot,hiddenName,0);
-			if(writeCB){
-				JsVar *tmp = jspExecuteFunction(writeCB,0,0,0);
-				if(tmp) jsvUnLock(tmp);
-			}
-			break;
-		}
-	}
-	for(uint16_t pos = 0; pos < ble_descr_cnt; pos++){
-		if(gatts_descr[pos].descr_handle == param->write.handle){
-			gatts_descr[pos].descrVal = jsvNewStringOfLength(param->write.len,param->write.value);
-			break;
-		}
-	}
-	esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
+  for(uint16_t pos = 0; pos < ble_char_cnt; pos++){
+    if(gatts_char[pos].char_handle == param->write.handle){
+      char hiddenName[12];
+      
+      JsVar *evt = jsvNewObject();
+      if (evt) {
+        JsVar *str = jsvNewStringOfLength(param->write.len, (char*)param->write.value);
+        if (str) {
+          JsVar *ab = jsvNewArrayBufferFromString(str, param->write.len);
+          jsvUnLock(str);
+          jsvObjectSetChildAndUnLock(evt, "data", ab);
+        }
+      }
+       
+      bleGetHiddenName(hiddenName,BLE_CHAR_VALUE,pos);
+      jsvObjectSetChildAndUnLock(execInfo.hiddenRoot,hiddenName,
+         jsvNewStringOfLength(param->write.len,param->write.value));
+      bleGetHiddenName(hiddenName,BLE_WRITE_EVENT,pos);
+      JsVar *writeCB = jsvObjectGetChild(execInfo.hiddenRoot,hiddenName,0);
+      if(writeCB){
+        JsVar *tmp = jspExecuteFunction(writeCB,0,1,&evt);
+        if(evt) jsvUnLock(evt);
+        if(tmp) jsvUnLock(tmp);
+      }
+      break;
+    }
+  }
+  for(uint16_t pos = 0; pos < ble_descr_cnt; pos++){
+    if(gatts_descr[pos].descr_handle == param->write.handle){
+      gatts_descr[pos].descrVal = jsvNewStringOfLength(param->write.len,param->write.value);
+      break;
+    }
+  }
+  esp_ble_gatts_send_response(gatts_if, param->write.conn_id, param->write.trans_id, ESP_GATT_OK, NULL);
 }
 void gatts_reg_app(){
 	esp_err_t r;
@@ -175,16 +191,16 @@ void gatts_add_descr(){
 	gatts_add_char();
 }
 void gatts_check_add_descr(esp_bt_uuid_t descr_uuid, uint16_t attr_handle){
-	if(attr_handle != 0){
-		gatts_descr[ble_descr_pos].descr_handle=attr_handle;
-	}
-	gatts_add_descr(); // try to add more descriptors
+  if(attr_handle != 0){
+    gatts_descr[ble_descr_pos].descr_handle=attr_handle;
+  }
+  gatts_add_descr(); // try to add more descriptors
 }
 static void gatts_check_add_char(esp_bt_uuid_t char_uuid, uint16_t attr_handle) {
-	if (attr_handle != 0) {
-		gatts_char[ble_char_pos].char_handle=attr_handle;
-		gatts_add_descr(); // try to add descriptors to this characteristic
-	}
+  if (attr_handle != 0) {
+    gatts_char[ble_char_pos].char_handle=attr_handle;
+    gatts_add_descr(); // try to add descriptors to this characteristic
+  }
 }
 static void gatts_delete_service(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if){
 	esp_err_t r;
@@ -299,6 +315,18 @@ void gatts_char_init(){
 		bleGetHiddenName(hiddenName,BLE_WRITE_EVENT,ble_char_pos);
 		jsvObjectSetChildAndUnLock(execInfo.hiddenRoot,hiddenName,writeCB);
 	}
+
+	if (jsvGetBoolAndUnLock(jsvObjectGetChild(charVar, "notify", 0))) {
+		ble_descr_pos++;
+		gatts_descr[ble_descr_pos].char_pos = ble_char_pos;
+		gatts_descr[ble_descr_pos].descr_uuid.len = ESP_UUID_LEN_16;
+		gatts_descr[ble_descr_pos].descr_uuid.uuid.uuid16 = ESP_GATT_UUID_CHAR_CLIENT_CONFIG;
+		gatts_descr[ble_descr_pos].descr_perm = ESP_GATT_PERM_READ | ESP_GATT_PERM_WRITE;
+		gatts_descr[ble_descr_pos].descrVal = 0;
+		gatts_descr[ble_descr_pos].descr_control = NULL;
+		gatts_descr[ble_descr_pos].descr_handle = 0;
+	}
+
 	JsVar *charDescriptionVar = jsvObjectGetChild(charVar, "description", 0);
 	if (charDescriptionVar && jsvHasCharacterData(charDescriptionVar)) {
 		ble_descr_pos++;
@@ -374,6 +402,10 @@ void gatts_create_structs(){
 			jsvUnLock(charVar);
 			jsvObjectIteratorNext(&ble_char_it);
 			ble_char_cnt++;
+
+			if (jsvGetBoolAndUnLock(jsvObjectGetChild(charVar, "notify", 0))) {
+				ble_descr_cnt++;
+			}
 		}
 		jsvUnLock(serviceVar);
 		jsvObjectIteratorFree(&ble_char_it);

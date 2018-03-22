@@ -110,6 +110,7 @@ bool jsble_has_simple_connection(){
 
 /// Checks for error and reports an exception if there was one. Return true on error
 bool jsble_check_error(uint32_t err_code){
+	if (err_code == 0) return;
 	jsWarn("check error not implemented yet:%x\n",err_code);
 	UNUSED(err_code);
 	return false;
