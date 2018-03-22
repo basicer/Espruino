@@ -27,7 +27,7 @@ typedef enum {
 #define JSFLAG_NAMES "deepSleep\0pretokenise\0unsafeFlash\0unsyncFiles\0"
 // NOTE: \0 also added by compiler - two \0's are required!
 
-extern volatile JsFlags jsFlags;
+extern THREADLOCAL volatile JsFlags jsFlags;
 
 /// Get the state of a flag
 bool jsfGetFlag(JsFlags flag);

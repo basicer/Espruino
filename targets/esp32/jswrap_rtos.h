@@ -27,11 +27,13 @@ void jswrap_Queue_log(JsVar *parent);
 
 // ==== Task handling
 JsVar *jswrap_Task_constructor(JsVar *taskName);
+JsVar *jswrap_Task_create(JsVar *code);
 void jswrap_Task_suspend(JsVar *parent);
 void jswrap_Task_resume(JsVar *parent);
 JsVar *jswrap_Task_getCurrent(JsVar *parent);
 void jswrap_Task_notify(JsVar *taskName);
 void jswrap_Task_log(JsVar *parent);
+void jswrap_Task_delay(int time);
 
 // ==== Timer handling
 JsVar *jswrap_Timer_constructor(JsVar *timerName,int group, int index, int isrIndex);

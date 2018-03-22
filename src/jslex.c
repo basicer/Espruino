@@ -13,7 +13,7 @@
  */
 #include "jslex.h"
 
-JsLex *lex;
+THREADLOCAL JsLex *lex;
 
 JsLex *jslSetLex(JsLex *l) {
   JsLex *old = lex;

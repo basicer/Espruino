@@ -44,7 +44,7 @@ function declaration: `(function(a){ return arguments.length; })() == 1`.
 Normal JavaScript interpreters would return `0` in the above case.
 
  */
-extern JsExecInfo execInfo;
+extern THREADLOCAL JsExecInfo execInfo;
 JsVar *jswrap_arguments() {
   JsVar *scope = 0;
   if (execInfo.scopeCount>0)

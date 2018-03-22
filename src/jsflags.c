@@ -13,7 +13,7 @@
  */
 #include "jsflags.h"
 
-volatile JsFlags jsFlags;
+THREADLOCAL volatile JsFlags jsFlags;
 const char *jsFlagNames = JSFLAG_NAMES;
 
 

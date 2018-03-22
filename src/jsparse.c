@@ -25,7 +25,7 @@
 
 /* Info about execution when Parsing - this saves passing it on the stack
  * for each call */
-JsExecInfo execInfo;
+THREADLOCAL JsExecInfo execInfo;
 
 // ----------------------------------------------- Forward decls
 JsVar *jspeAssignmentExpression();
@@ -2838,6 +2838,11 @@ void jspSoftInit() {
   // Root now has a lock and a ref
   execInfo.hiddenRoot = jsvObjectGetChild(execInfo.root, JS_HIDDEN_CHAR_STR, JSV_OBJECT);
   execInfo.execute = EXEC_YES;
+}
+
+void jspSoftInitIfNeeded() {
+  if (!execInfo.root) { execInfo.root = jsvFindOrCreateRoot(); execInfo.execute = EXEC_YES; }
+  if (!execInfo.hiddenRoot) execInfo.hiddenRoot = jsvObjectGetChild(execInfo.root, JS_HIDDEN_CHAR_STR, JSV_OBJECT);
 }
 
 void jspSoftKill() {

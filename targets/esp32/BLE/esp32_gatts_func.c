@@ -64,6 +64,7 @@ int getIndexFromGatts_if(esp_gatt_if_t gatts_if){
 }
 
 static void gatts_read_value_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {
+	jspSoftInitIfNeeded();
 	esp_gatt_rsp_t rsp; JsVar *charValue;
 	memset(&rsp, 0, sizeof(esp_gatt_rsp_t));
 	rsp.attr_value.handle = param->read.handle;
@@ -105,6 +106,7 @@ static void gatts_read_value_handler(esp_gatts_cb_event_t event, esp_gatt_if_t g
 	esp_ble_gatts_send_response(gatts_if, param->read.conn_id, param->read.trans_id, ESP_GATT_OK, &rsp);
 }
 static void gatts_write_value_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param) {
+  jspSoftInitIfNeeded();
   for(uint16_t pos = 0; pos < ble_char_cnt; pos++){
     if(gatts_char[pos].char_handle == param->write.handle){
       char hiddenName[12];

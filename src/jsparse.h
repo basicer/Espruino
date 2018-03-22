@@ -22,6 +22,7 @@ void jspKill();
 
 // jspSoft* - 'release' or 'claim' anything we are using, but ensure that it doesn't get freed
 void jspSoftInit(); ///< used when recovering from or saving to flash
+void jspSoftInitIfNeeded();
 void jspSoftKill(); ///< used when recovering from or saving to flash
 /** Returns true if the constructor function given is the same as that
  * of the object with the given name. */
@@ -137,7 +138,7 @@ typedef struct {
 
 /* Info about execution when Parsing - this saves passing it on the stack
  * for each call */
-extern JsExecInfo execInfo;
+extern THREADLOCAL JsExecInfo execInfo;
 
 /// flags for jspParseFunction
 typedef enum {

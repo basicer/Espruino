@@ -108,6 +108,49 @@ JsVar *jswrap_Task_constructor(JsVar *taskName){
   jsvObjectSetChildAndUnLock(task, "index", jsvNewFromInteger(idx));
   return task;
 }
+
+typedef struct  {
+  int task_index;
+  JsVar *target;
+} thread_params;
+
+
+static void userTask(thread_params *data) {
+  jspSoftInit();
+  while(1) {
+    JsVar *val = NULL;
+    if ( jsvIsFunction(data->target) ) {
+      val = jspExecuteFunction(data->target, NULL, 0, NULL);
+    } else {
+      val = jspEvaluateVar(data->target, 0, 0);
+    }
+    if ( val ) jsvUnLock(val);
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+  }
+}
+
+/*JSON{
+ "type"     : "staticmethod",
+ "class"    : "Task",
+ "name"     : "create",
+ "generate" : "jswrap_Task_create",
+ "params"   : [ ["code", "JsVar", "Code for the task"] ],
+ "return"   : ["JsVar","A Task object"]
+}
+Suspend task, be careful not to suspend Espruino task itself
+*/
+JsVar * jswrap_Task_create(JsVar *code){
+  thread_params *params = jsvMalloc(sizeof(thread_params));
+  jsvLockAgain(code);
+  params->target = code;
+  int idx = task_init(userTask,"userTask",2200,20,0,params);
+  params->task_index = idx;
+  JsVar *task = jspNewObject(0, "Task");
+  if (!task) return 0;
+  jsvObjectSetChildAndUnLock(task, "index", jsvNewFromInteger(idx));
+  return task;
+}
+
 /*JSON{
  "type"     : "method",
  "class"    : "Task",
@@ -159,7 +202,7 @@ void jswrap_Task_notify(JsVar *parent){
   task_notify(jsvGetInteger(idx));
 }
 /*JSON{
- "type"     : "method",
+ "type"     : "staticmethod",
  "class"    : "Task",
  "name"     : "log",
  "generate" : "jswrap_Task_log"
@@ -170,6 +213,21 @@ void jswrap_Task_log(JsVar *parent) {
   task_list();
   return;
 }
+
+
+/*JSON{
+ "type"     : "staticmethod",
+ "class"    : "Task",
+ "name"     : "delay",
+ "generate" : "jswrap_Task_delay",
+ "params"   : [ ["time", "int", "Time to Delay"] ]
+}
+Suspend task, be careful not to suspend Espruino task itself
+*/
+void jswrap_Task_delay(int time){
+  vTaskDelay(time / portTICK_PERIOD_MS);
+}
+
 
 /*JSON{
   "type"	: "class",

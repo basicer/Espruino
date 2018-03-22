@@ -137,7 +137,7 @@ typedef struct JsLex
 } JsLex;
 
 // The lexer
-extern JsLex *lex;
+extern THREADLOCAL JsLex *lex;
 /// Set the lexer - return the old one
 JsLex *jslSetLex(JsLex *l);
 

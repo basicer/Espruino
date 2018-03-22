@@ -90,8 +90,8 @@ int app_main(void)
 #ifdef RTOS
   queues_init();
   tasks_init();
-  task_init(espruinoTask,"EspruinoTask",25000,5,0);
-  task_init(uartTask,"ConsoleTask",2200,20,0);
+  task_init(espruinoTask,"EspruinoTask",25000,5,0,NULL);
+  task_init(uartTask,"ConsoleTask",2200,20,0,NULL);
 #else
   xTaskCreatePinnedToCore(&espruinoTask, "espruinoTask", 25000, NULL, 5, NULL, 0);
   xTaskCreatePinnedToCore(&uartTask,"uartTask",2200,NULL,20,NULL,0);

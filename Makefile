@@ -69,6 +69,8 @@ OPTIMIZEFLAGS?=
 #-fdiagnostics-show-option - shows which flags can be used with -Werror
 DEFINES+=-DGIT_COMMIT=$(shell git log -1 --format="%h")
 
+DEFINES+=-DTHREADLOCAL=__thread
+
 ifeq ($(shell uname),Darwin)
 MACOSX=1
 CFLAGS+=-D__MACOSX__

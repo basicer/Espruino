@@ -120,12 +120,12 @@ char *task_getCurrentName(){
   }
   return NULL;
 }
-int task_init(TaskFunction_t taskCode, char *taskName,unsigned short stackDepth,UBaseType_t priority,BaseType_t coreId){
+int task_init(TaskFunction_t taskCode, char *taskName,unsigned short stackDepth,UBaseType_t priority,BaseType_t coreId,void *data){
   int i;
   for(i = 0; i < taskMax; i++){
 	if(NULL == RTOStasks[i].handle){
 	  RTOStasks[i].name = taskName;
-	  xTaskCreatePinnedToCore(taskCode,taskName,stackDepth,NULL,priority,&RTOStasks[i].handle,coreId);
+	  xTaskCreatePinnedToCore(taskCode,taskName,stackDepth,data,priority,&RTOStasks[i].handle,coreId);
 	  return i;
 	}
   }
