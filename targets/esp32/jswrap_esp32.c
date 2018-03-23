@@ -21,6 +21,7 @@
 
 #include "esp_system.h"
 #include "esp_sleep.h"
+#include "esp_deep_sleep.h"
 #include "app_update/include/esp_ota_ops.h"
 #include "BLE/esp32_bluetooth_utils.h"
 

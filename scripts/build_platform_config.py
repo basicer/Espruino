@@ -223,7 +223,7 @@ elif board.chip["family"]=="SAMD":
 else:
   die('Unknown chip family '+board.chip["family"])
 
-if board.info["variables_mode"]:
+if "variables_mode" in board.info.keys():
   codeOut('#define VARIABLES_MODE_'+board.info["variables_mode"].upper() + ' // mode for allocating memory, standard is statically assigned');
   codeOut('');
 
