@@ -223,6 +223,10 @@ elif board.chip["family"]=="SAMD":
 else:
   die('Unknown chip family '+board.chip["family"])
 
+if board.info["variables_mode"]:
+  codeOut('#define VARIABLES_MODE_'+board.info["variables_mode"].upper() + ' // mode for allocating memory, standard is statically assigned');
+  codeOut('');
+
 codeOut("#define LINKER_END_VAR "+linker_end_var);
 codeOut("#define LINKER_ETEXT_VAR "+linker_etext_var);
 
@@ -270,6 +274,9 @@ if LINUX:
   codeOut("#define FLASH_START                     "+hex(0x10000000))
   codeOut("#define FLASH_PAGE_SIZE                 "+str(flash_page_size))
 else:  
+  codeOut("#define JSVAR_CACHE_SIZE                "+str(variables)+" // Number of JavaScript variables in RAM")
+  if board.chip["class"]=="ESP32":
+    codeOut("#define JSVAR_CACHE_SIZE_PSRAM          "+str(board.info['variables_psram'])+" // Number of Javascript variables in RAM for boards with additional RAM (like ESP32 WROVER)");
   codeOut("#define FLASH_AVAILABLE_FOR_CODE        "+str(int(flash_available_for_code)))
   if board.chip["class"]=="EFM32":
     codeOut("// FLASH_PAGE_SIZE defined in em_device.h");

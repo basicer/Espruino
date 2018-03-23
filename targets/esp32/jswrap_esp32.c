@@ -20,6 +20,7 @@
 #include "jsparse.h"
 
 #include "esp_system.h"
+#include "esp_sleep.h"
 #include "app_update/include/esp_ota_ops.h"
 #include "BLE/esp32_bluetooth_utils.h"
 
@@ -140,52 +141,4 @@ JsVar *jswrap_ESP32_setBoot(JsVar *jsPartitionName) {
 */
 void jswrap_ESP32_setBLE_Debug(int level){
 	ESP32_setBLE_Debug(level);
-}
-
-/*JSON{
-  "type"	: "staticmethod",
-  "class"	: "ESP32",
-  "name"	: "BLE_charValue",
-  "generate": "jswrap_ESP32_BLE_charValue",
-  "params"	:[
-    ["serviceUUID", "JsVar", "service UUID"],
-	["charUUID", "JsVar", "char UUID"],
-	["newValue", "JsVar", "value for char"]
-  ],
-  "return"	: ["JsVar", "actualvalue"] 
-}
-*/
-JsVar *jswrap_ESP32_BLE_charValue(JsVar *serviceUUID,JsVar *charUUID, JsVar *newValue){
-    JsVar *serviceKey; JsvObjectIterator serviceIt; JsVar *serviceData;
-    JsVar *servicesData = jsvObjectGetChild(execInfo.hiddenRoot,"BLE_SVC_D",0);
-    JsVar *charKey; JsvObjectIterator charIt; JsVar *charData;
-    JsVar *value;
-    jsvObjectIteratorNew(&serviceIt,servicesData);
-    while(jsvObjectIteratorHasValue(&serviceIt)){
-        serviceKey = jsvObjectIteratorGetKey(&serviceIt);
-        if(jsvIsEqual(serviceKey,serviceUUID)){
-            serviceData = jsvObjectIteratorGetValue(&serviceIt);
-            jsvObjectIteratorNew(&charIt,serviceData);
-            while(jsvObjectIteratorHasValue(&charIt)){
-                charKey = jsvObjectIteratorGetKey(&charIt);
-                if(jsvIsEqual(charKey,charUUID)){
-                    charData = jsvObjectIteratorGetValue(&charIt);
-                    value = jsvObjectGetChild(charData,"value",0);
-                    jsvUnLock(charData);
-					if(newValue){
-						jsvObjectSetChild(charData, "value", newValue);
-					}
-                }
-                jsvUnLock(charKey);
-                jsvObjectIteratorNext(&charIt);
-            }
-            jsvObjectIteratorFree(&charIt);
-            jsvUnLock(serviceData);
-        }
-        jsvUnLock(serviceKey);
-        jsvObjectIteratorNext(&serviceIt);
-    }
-    jsvObjectIteratorFree(&serviceIt);
-    jsvUnLock(servicesData);
-    return value;
 }

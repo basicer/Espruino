@@ -177,12 +177,7 @@ def get_jsondata(is_for_document, parseArgs = True, board = False):
               print(dropped_prefix+" because of #ifndef "+jsondata["ifndef"])
               drop = True
             if ("ifdef" in jsondata):
-#changed to support list of definitions, for example "ifdef" : "[NRF52,ESP32]"
-              ifdefs = jsondata["ifdef"]
-#convert a single value to a list
-              if(not type(ifdefs) is list):
-                ifdefs = [ifdefs]
-#intersection of ifdef's and defines
+              ifdefs = jsondata["ifdef"].encode('ascii','ignore').split(",")
               if(not [val for val in defines if val in ifdefs]):
                 print(dropped_prefix+" because of #ifdef "+jsondata["ifdef"])
                 drop = True

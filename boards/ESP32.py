@@ -20,6 +20,8 @@ info = {
  'default_console'          : "EV_SERIAL1",
  'default_console_baudrate' : "115200",
  'variables'                : 2000,
+ 'variables_psram'          : 20000,
+ 'variables_mode'           : "malloc",
  'binary_name'              : 'espruino_%v_esp32.bin',
  'build' : {
    'optimizeflags' : '-Og',

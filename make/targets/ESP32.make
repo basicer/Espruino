@@ -16,10 +16,11 @@ $(ESP_ZIP): $(PROJ_NAME).bin
 	$(Q)cp $(PROJ_NAME).bin espruino_esp32.bin
 	$(Q)cp $(ESP_APP_TEMPLATE_PATH)/build/bootloader/bootloader.bin \
 	  espruino_esp32.bin \
-	  $(ESP_APP_TEMPLATE_PATH)/build/partitions_espruino.bin \
+	  $(ESP_APP_TEMPLATE_PATH)/build/partitions_espruinoBLE.bin \
 	  targets/esp32/README_flash.txt \
 	  build/$(basename $(ESP_ZIP))
 	$(Q)tar -C build -zcf $(ESP_ZIP) ./$(basename $(ESP_ZIP))
+	$(Q)xtensa-esp32-elf-objdump -x -S $(PROJ_NAME).elf > ./build/$(PROJ_NAME)/$(basename $(PROJ_NAME)).lst
 
 proj: $(PROJ_NAME).bin $(ESP_ZIP)
 

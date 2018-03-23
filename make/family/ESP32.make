@@ -6,7 +6,7 @@ ESP32=1
 
 CFLAGS+=-Og -Wpointer-arith -Wno-error=unused-function -Wno-error=unused-but-set-variable \
 -Wno-error=unused-variable -Wall -ffunction-sections -fdata-sections -mlongcalls -nostdlib \
--MMD -MP -std=gnu99 -fstrict-volatile-bitfields -fgnu89-inline
+-MMD -MP -std=gnu99 -fstrict-volatile-bitfields -fgnu89-inline -mfix-esp32-psram-cache-issue
 SOURCES += targets/esp32/jshardware.c
 SOURCES += targets/esp32/esp32_neopixel.c
 INCLUDE += -I$(ROOT)/targets/esp32
@@ -80,12 +80,15 @@ LIBS+=-T esp32_out.ld \
 -T$(ESP_IDF_PATH)/components/esp32/ld/esp32.common.ld \
 -T$(ESP_IDF_PATH)/components/esp32/ld/esp32.rom.ld \
 -T$(ESP_IDF_PATH)/components/esp32/ld/esp32.peripherals.ld \
--T$(ESP_IDF_PATH)/components/esp32/ld/esp32.rom.spiram_incompatible_fns.ld \
 $(ESP_IDF_PATH)/components/esp32/lib/librtc.a \
+$(ESP_IDF_PATH)/components/esp32/lib/libnet80211.a \
 $(ESP_IDF_PATH)/components/newlib/lib/libc.a \
 $(ESP_IDF_PATH)/components/newlib/lib/libm.a \
 $(ESP_IDF_PATH)/components/esp32/lib/libwpa2.a \
 $(ESP_IDF_PATH)/components/esp32/lib/libwps.a \
+$(ESP_IDF_PATH)/components/newlib/lib/libc-psram-workaround.a \
+$(ESP_IDF_PATH)/components/newlib/lib/libm-psram-workaround.a \
+$(ESP_IDF_PATH)/components/esp32/lib/libcore.a \
 -lbt \
 -lbtdm_app \
 -ldriver \
@@ -127,7 +130,7 @@ SOURCES+= targets/esp32/bluetooth.c \
 targets/esp32/BLE/esp32_bluetooth_utils.c \
 targets/esp32/BLE/esp32_gap_func.c \
 targets/esp32/BLE/esp32_gatts_func.c \
-targets/esp32/BLE/esp32_gattc_func.c
+targets/esp32/BLE/esp32_gattc_func.c 
 INCLUDE+= -I$(ESP_IDF_PATH)/components/bt/bluedroid/include \
 -I$(ESP_IDF_PATH)/components/bt/bluedroid/api/include \
 -I$(ESP_IDF_PATH)/components/bt/bluedroid/bta/include \
@@ -137,3 +140,11 @@ INCLUDE+= -I$(ESP_IDF_PATH)/components/bt/bluedroid/include \
 LDFLAGS+= -L$(ESP_APP_TEMPLATE_PATH)/build/components/bt/bluedroid/api \
 -L$(ESP_APP_TEMPLATE_PATH)/build/components/bt/bluedroid/bta 
 endif
+
+# add this only, if you need to debug with heap_trace.....
+#WRAP_FUNCTIONS = calloc malloc free realloc heap_caps_malloc heap_caps_free heap_caps_realloc
+#WRAP_ARGUMENT := -Wl,--wrap=
+#LDFLAGS+= -lheap $(addprefix $(WRAP_ARGUMENT),$(WRAP_FUNCTIONS))
+
+LDFLAGS+= -L$(ESP_APP_TEMPLATE_PATH)/build/cxx
+LDFLAGS+= -lcxx -u __cxa_guard_dummy -u __cxx_fatal_exception

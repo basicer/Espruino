@@ -32,6 +32,9 @@
 #include "jshardwarePWM.h"
 #include "jshardwarePulse.h"
 
+#include "BLE/esp32_gattc_func.h"
+#include "BLE/esp32_gatts_func.h"
+
 #include "jsutils.h"
 #include "jstimer.h"
 #include "jsparse.h"
@@ -113,8 +116,10 @@ void jshPinSetStateRange( Pin start, Pin end, JshPinState state ) {
 void jshPinDefaultPullup() {
   // 6-11 are used by Flash chip
   // 32-33 are routed to rtc for xtal
+  // 16-17 are used for PSRAM
   jshPinSetStateRange(0,0,JSHPINSTATE_GPIO_IN_PULLUP);
-  jshPinSetStateRange(12,19,JSHPINSTATE_GPIO_IN_PULLUP);
+  jshPinSetStateRange(12,15,JSHPINSTATE_GPIO_IN_PULLUP);
+  jshPinSetStateRange(18,19,JSHPINSTATE_GPIO_IN_PULLUP);
   jshPinSetStateRange(21,22,JSHPINSTATE_GPIO_IN_PULLUP);
   jshPinSetStateRange(25,27,JSHPINSTATE_GPIO_IN_PULLUP);
   jshPinSetStateRange(34,39,JSHPINSTATE_GPIO_IN_PULLUP);
@@ -126,6 +131,7 @@ void jshPinDefaultPullup() {
  */
 void jshInit() {
   esp32_wifi_init();
+  gattc_init();
   jshInitDevices();
   BITFIELD_CLEAR(jshPinSoftPWM);
   if (JSHPINSTATE_I2C != 13 || JSHPINSTATE_GPIO_IN_PULLDOWN != 6 || JSHPINSTATE_MASK != 15) {
@@ -147,11 +153,12 @@ void jshInit() {
 void jshReset() {
   jshResetDevices();
   jshPinDefaultPullup() ;
-  UartReset();
+//  UartReset();
   RMTReset();
   ADCReset();
   SPIReset();
   I2CReset();
+  gatts_reset(false);
 }
 
 /**

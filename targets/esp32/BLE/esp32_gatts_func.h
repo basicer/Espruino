@@ -16,6 +16,7 @@
 
 #include "esp_gatts_api.h"
 #include "jsvar.h"
+#include "bluetooth.h"
 
 #define GATTS_CHAR_VAL_LEN_MAX		22 // maximum length in bytes of a characteristic's value. TODO: find out how to determine this value?
 
@@ -26,6 +27,7 @@ struct gatts_service_inst {
 	uint16_t service_handle;
 	esp_gatt_srvc_id_t service_id;
 	uint16_t num_handles;
+	ble_uuid_t ble_uuid;
 	uint16_t uuid16;
 };
 
@@ -48,18 +50,15 @@ struct gatts_descr_inst {
 	uint16_t descr_handle;
 };
 
-static uint8_t adv_service_uuid128[64] = {
-    /* LSB <--------------------------------------------------------------------------------> MSB */
-	// 00000000-0000-1000-8000-00805F9B34FB
-    0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
-    0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
-    0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
-    0xfb, 0x34, 0x9b, 0x5f, 0x80, 0x00, 0x00, 0x80, 0x00, 0x10, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00,
-};
+static uint8_t *adv_service_uuid128 = NULL;
+
 static uint16_t ble_service_cnt = 0;
 
 void gatts_event_handler(esp_gatts_cb_event_t event, esp_gatt_if_t gatts_if, esp_ble_gatts_cb_param_t *param);
 void gatts_register_app(uint16_t id);
 void gatts_set_services(JsVar *data);
+void gatts_reset(bool removeValues);
+
+void gatts_test();
 
 #endif /* GATTS_FUNC_H_ */

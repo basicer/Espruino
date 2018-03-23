@@ -19,9 +19,14 @@
 #include "jswrap_wifi.h" // jswrap_wifi_restore
 #include "bluetooth.h"
 
+#include "BLE/esp32_gap_func.h"
+
 #include "esp_spi_flash.h"
 #include "spi_flash/include/esp_partition.h"
 #include "esp_log.h"
+
+#include "platform_config.h"
+#include "jsvar.h"
 
 extern void initialise_wifi(void);
 
@@ -40,10 +45,13 @@ static void espruinoTask(void *data) {
   initADC(1);
   jshInit();     // Initialize the hardware
   jswrap_wifi_restore();
+  if(esp_get_free_heap_size() > 0x300000) jsVarsSize = JSVAR_CACHE_SIZE_PSRAM;  // looks like 4MB SPI_RAM is enabled for heap
+  else jsVarsSize = JSVAR_CACHE_SIZE;   // number of variables for boards with or without additional SPI RAM
   jsvInit();     // Initialize the variables
   // not sure why this delay is needed?
   vTaskDelay(200 / portTICK_PERIOD_MS);
   jsiInit(true); // Initialize the interactive subsystem
+  bluetooth_initDeviceName();
   while(1) {
     jsiLoop();   // Perform the primary loop processing
   }

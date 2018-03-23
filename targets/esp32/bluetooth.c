@@ -19,53 +19,64 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 
+#include "jswrap_bluetooth.h"
 #include "bluetooth.h"
 #include "jsutils.h"
 
 #include "BLE/esp32_gap_func.h"
 #include "BLE/esp32_gatts_func.h"
+#include "BLE/esp32_gattc_func.h"
+#include "BLE/esp32_bluetooth_utils.h"
 
 #define UNUSED(x) (void)(x)
  
 volatile BLEStatus bleStatus;
 uint16_t bleAdvertisingInterval;           /**< The advertising interval (in units of 0.625 ms). */
-volatile uint16_t                         m_conn_handle;    /**< Handle of the current connection. */
+volatile uint16_t  m_conn_handle;    /**< Handle of the current connection. */
+volatile uint16_t m_central_conn_handle; /**< Handle of central mode connection */
 
 /** Initialise the BLE stack */
 void jsble_init(){
-	esp_err_t ret;
-    esp_bt_controller_config_t bt_cfg = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
-    ret = esp_bt_controller_init(&bt_cfg);
-    if(ret) {jsWarn("initialize controller failed:%x\n",ret); return;}
-
-	ret = esp_bt_controller_enable(ESP_BT_MODE_BLE);
-	if(ret) {jsWarn("enable controller failed:%x\n",ret); return;}
-	
-	ret = esp_bt_controller_mem_release(ESP_BT_MODE_BTDM);
+	esp_err_t ret;  	
+	ret = esp_bt_controller_mem_release(ESP_BT_MODE_CLASSIC_BT);
 	if(ret) {jsWarn("mem release failed:%x\n",ret); return;}
 	
-	ret = esp_bluedroid_init();
-	if (ret) {jsWarn("init bluetooth failed:%x\n",ret);return;}
-    
-	ret = esp_bluedroid_enable();
-    if (ret) {jsWarn("enable bluetooth failed:%x\n",ret);return;}
-	
-	ret = esp_ble_gap_register_callback(gap_event_handler);
-    if (ret){jsWarn("gap register error:%x\n", ret);return;}
-
-	ret = esp_ble_gatts_register_callback(gatts_event_handler);
-	if(ret){jsWarn("gatts register error:%x\n", ret);return;}
-	
-	ret = esp_ble_gatt_set_local_mtu(500);
-	if(ret){jsWarn("set local MTU failed:%x\n",ret);return;}
+	if(initController()) return;
+	if(initBluedroid()) return;
+	if(registerCallbacks()) return;
+	setMtu();
 }
 /** Completely deinitialise the BLE stack */
 void jsble_kill(){
 	jsWarn("kill not implemented yet\n");
 }
 
+void jsble_queue_pending_buf(BLEPending blep, uint16_t data, char *ptr, size_t len){
+	jsWarn("queue_pending_buf not implemented yet");
+	UNUSED(blep);	
+	UNUSED(data);
+	UNUSED(ptr);
+	UNUSED(len);
+}
+
+void jsble_queue_pending(BLEPending blep, uint16_t data){
+	jsWarn("queue_pending not implemented yet");
+	UNUSED(blep);
+	UNUSED(data);
+}
+
+int jsble_exec_pending(IOEvent *event){
+	jsWarn("exec_pending not implemented yet");
+	UNUSED(event);
+	return 0;
+}
+
 void jsble_restart_softdevice(){
-	jsWarn("restart softdevice not implemented yet\n");
+	bleStatus &= ~(BLE_NEEDS_SOFTDEVICE_RESTART | BLE_SERVICES_WERE_SET);
+	if (bleStatus & BLE_IS_SCANNING) {
+		bluetooth_gap_setScan(false);
+	}
+	jswrap_nrf_reconfigure_softdevice();
 }
 
 void jsble_advertising_start(){
@@ -125,8 +136,7 @@ void jsble_set_services(JsVar *data){
 
 /// Disconnect from the given connection
 uint32_t jsble_disconnect(uint16_t conn_handle){
-	jsWarn("disconnect not implemented yet\n");
-	UNUSED(conn_handle);
+	return gattc_disconnect(conn_handle);
 	return 0;
 }
 
@@ -135,4 +145,59 @@ void jsble_send_hid_input_report(uint8_t *data, int length){
 	jsWarn("send hid input report not implemented yet\n");
 	UNUSED(data);
 	UNUSED(length);
+}
+
+/// Connect to the given peer address. When done call bleCompleteTask
+void jsble_central_connect(ble_gap_addr_t peer_addr){
+	gattc_connect(peer_addr.addr);
+}
+/// Get primary services. Filter by UUID unless UUID is invalid, in which case return all. When done call bleCompleteTask
+void jsble_central_getPrimaryServices(ble_uuid_t uuid){
+	gattc_searchService(uuid);
+}
+/// Get characteristics. Filter by UUID unless UUID is invalid, in which case return all. When done call bleCompleteTask
+void jsble_central_getCharacteristics(JsVar *service, ble_uuid_t uuid){
+	gattc_getCharacteristic(uuid);
+	UNUSED(service);
+}
+// Write data to the given characteristic. When done call bleCompleteTask
+void jsble_central_characteristicWrite(JsVar *characteristic, char *dataPtr, size_t dataLen){
+	uint16_t handle = jsvGetIntegerAndUnLock(jsvObjectGetChild(characteristic, "handle_value", 0));
+	gattc_writeValue(handle,dataPtr,dataLen);
+}
+// Read data from the given characteristic. When done call bleCompleteTask
+void jsble_central_characteristicRead(JsVar *characteristic){
+	uint16_t handle = jsvGetIntegerAndUnLock(jsvObjectGetChild(characteristic, "handle_value", 0));
+	gattc_readValue(handle);
+}
+// Discover descriptors of characteristic
+void jsble_central_characteristicDescDiscover(JsVar *characteristic){
+	jsWarn("Central characteristicDescDiscover not implemented yet\n");
+	UNUSED(characteristic);
+}
+// Set whether to notify on the given characteristic. When done call bleCompleteTask
+void jsble_central_characteristicNotify(JsVar *characteristic, bool enable){
+	jsWarn("central characteristic notify not implemented yet\n");
+	UNUSED(characteristic);
+	UNUSED(enable);
+}
+/// Start bonding on the current central connection
+void jsble_central_startBonding(bool forceRePair){
+	jsWarn("central start bonding not implemented yet\n");
+	UNUSED(forceRePair);
+}
+/// Get the security status of the current link
+JsVar *jsble_central_getSecurityStatus(){
+	jsWarn("central getSecurityStatus not implemented yet\n");
+	return 0;
+}
+/// RSSI monitoring in central mode
+uint32_t jsble_set_central_rssi_scan(bool enabled){
+	jsWarn("central set rssi scan not implemented yet\n");
+	return 0;
+}
+// Set whether or not the whitelist is enabled
+void jsble_central_setWhitelist(bool whitelist){
+	jsWarn("central set Whitelist not implemented yet\n");
+	return 0;
 }
